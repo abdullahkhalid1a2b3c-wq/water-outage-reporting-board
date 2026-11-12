@@ -50,12 +50,25 @@ http://localhost:8000
 
 ## 3. Screenshots
 
-| Mobile View (375px) | Tablet View (768px) | Desktop View (1280px) |
-| :---: | :---: | :---: |
-| ![Mobile View](screenshots/mobile.png) | ![Tablet View](screenshots/tablet.png) | ![Desktop View](screenshots/desktop.png) |
-| *Single-column fluid flow* | *Two-column responsive card grid* | *Sticky sidebar form + 3-column grid* |
+| Desktop View — Resident (`1280px+`) | Desktop View — Admin Moderator (`1280px+`) |
+| :---: | :---: |
+| ![Desktop Resident View](screenshots/desktop-resident-view.png) | ![Desktop Admin View](screenshots/desktop-admin-view.png) |
+| *Resident view: Report sidebar, live filter bar, confirmed outage cards with "I'm affected too"* | *Admin view: Header toggle, Moderator Dashboard, needs moderation list, and area table* |
 
-*(Place PNG or JPEG captures into the `screenshots/` directory named `mobile.png`, `tablet.png`, and `desktop.png`.)*
+### Component & Feature Screenshots Gallery
+
+| Screenshot File | Description |
+| :--- | :--- |
+| [`desktop-resident-view.png`](screenshots/desktop-resident-view.png) | Full desktop UI in **Resident View** with filter bar, reports, and sidebar. |
+| [`desktop-admin-view.png`](screenshots/desktop-admin-view.png) | Full desktop UI in **Admin View** showing the Moderator Dashboard and toast notice. |
+| [`admin-moderator-dashboard.png`](screenshots/admin-moderator-dashboard.png) | Close-up of the **Admin Moderator Dashboard** and Area Breakdown table. |
+| [`report-form.png`](screenshots/report-form.png) | Outage reporting form with validation, character counter, and time picker. |
+| [`report-form-submission-success.png`](screenshots/report-form-submission-success.png) | Outage reporting form displaying live inline submission success feedback. |
+| [`report-card-resident-view.png`](screenshots/report-card-resident-view.png) | Report card in Resident view with badges, metadata, and "I'm affected too" button. |
+| [`filter-bar.png`](screenshots/filter-bar.png) | Multi-criteria filter controls (Area, Status, Verification, Search, Sort). |
+| [`filters-and-summary-stats.png`](screenshots/filters-and-summary-stats.png) | Filter bar paired with live summary statistics counters. |
+| [`notices-board-resident-view.png`](screenshots/notices-board-resident-view.png) | Public board notices bulletin feed in Resident view. |
+| [`notices-admin-add-notice-form.png`](screenshots/notices-admin-add-notice-form.png) | Administrative "Add a Notice" form visible only in Admin view. |
 
 ---
 
@@ -72,9 +85,16 @@ webdevASS1/
 │   ├── data.js             # Global constants, 8 seed reports with provenance, 3 notices
 │   └── app.js              # Vanilla JS controller: validation, duplicate merge, filtering
 └── screenshots/
-    ├── mobile.png          # Placeholder for mobile viewport capture
-    ├── tablet.png          # Placeholder for tablet viewport capture
-    └── desktop.png         # Placeholder for desktop viewport capture
+    ├── desktop-resident-view.png          # Full desktop layout in Resident view
+    ├── desktop-admin-view.png             # Full desktop layout in Admin view
+    ├── admin-moderator-dashboard.png      # Admin moderator metrics & area breakdown table
+    ├── report-form.png                    # Accessible outage reporting sidebar form
+    ├── report-form-submission-success.png # Form submission success confirmation
+    ├── report-card-resident-view.png      # Outage card with provenance & resident action
+    ├── filter-bar.png                     # Live filter, search, and sorting controls
+    ├── filters-and-summary-stats.png      # Filter bar with live board summary counts
+    ├── notices-board-resident-view.png    # Public timestamped board notices
+    └── notices-admin-add-notice-form.png  # Admin-only notice creation form
 ```
 
 ---
