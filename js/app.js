@@ -10,8 +10,7 @@
 const STALE_HOURS = 24;
 const DUPLICATE_WINDOW_HOURS = 2;
 const STORAGE_KEY = 'water_outage_board_data';
-const ROLE_RESIDENT = 'resident';
-const ROLE_ADMIN = 'admin';
+// Note: ROLE_RESIDENT and ROLE_ADMIN are declared globally in js/data.js
 const ROLE_STORAGE_KEY = 'water_outage_board_role';
 const CONFIRMED_STORAGE_KEY = 'water_outage_board_confirmed';
 
@@ -123,7 +122,7 @@ function loadData() {
       } else {
         const validReports = parsed.reports.filter(isValidReport);
         const validNotices = parsed.notices.filter(isValidNotice);
-        if (validReports.length === 0 && parsed.reports.length > 0) {
+        if (validReports.length === 0) {
           fallbackNeeded = true;
         } else {
           reports = validReports;
@@ -604,7 +603,9 @@ function setInitialTimeNoticed() {
   const offsetMs = now.getTimezoneOffset() * 60000;
   const localIso = new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
   inputTime.value = localIso;
-  inputTime.max = localIso; // Prevent selecting future time
+  // Allow a 5-minute buffer so submitting right away or small clock discrepancies do not block users
+  const maxIso = new Date(now.getTime() - offsetMs + 5 * 60000).toISOString().slice(0, 16);
+  inputTime.max = maxIso;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1112,7 +1113,7 @@ function validateForm() {
       inputTime.classList.add('touched');
       if (!firstInvalidEl) firstInvalidEl = inputTime;
       isValid = false;
-    } else if (noticedDate.getTime() > Date.now()) {
+    } else if (noticedDate.getTime() > Date.now() + 2 * 60 * 1000) {
       if (errorTime) errorTime.textContent = 'Time noticed cannot be in the future.';
       inputTime.classList.add('touched');
       if (!firstInvalidEl) firstInvalidEl = inputTime;
