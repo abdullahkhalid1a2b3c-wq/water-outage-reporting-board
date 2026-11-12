@@ -1,0 +1,1169 @@
+/* ================================================================
+   Water Outage Reporting Board — style.css
+   Mobile-first · Flexbox + CSS Grid · Blue-teal water palette
+   ================================================================ */
+
+
+/* ================================================================
+   1. CUSTOM PROPERTIES
+   Root-level design tokens: colors, spacing, radii, type scale.
+   ================================================================ */
+:root {
+  /* ── Blue palette ─────────────────────────────────────── */
+  --blue-900: #0d47a1;
+  --blue-700: #1565c0;
+  --blue-500: #1e88e5;
+  --blue-200: #90caf9;
+  --blue-100: #bbdefb;
+  --blue-50:  #e3f2fd;
+
+  /* ── Teal palette ─────────────────────────────────────── */
+  --teal-800: #00695c;
+  --teal-600: #00897b;
+  --teal-200: #80cbc4;
+  --teal-100: #b2dfdb;
+  --teal-50:  #e0f2f1;
+
+  /* ── Neutrals ─────────────────────────────────────────── */
+  --grey-900: #1a2332;
+  --grey-800: #2d3748;
+  --grey-600: #718096;
+  --grey-400: #a0aec0;
+  --grey-300: #cbd5e0;
+  --grey-200: #e2e8f0;
+  --grey-100: #edf2f7;
+  --grey-50:  #f7fafc;
+
+  /* ── Feedback colors ──────────────────────────────────── */
+  --green-700: #1b5e20;
+  --green-500: #2e7d32;
+  --green-100: #c8e6c9;
+  --green-50:  #e8f5e9;
+
+  --amber-800: #e65100;
+  --amber-600: #f57c00;
+  --amber-100: #ffe0b2;
+  --amber-50:  #fff8e1;
+
+  --red-700:  #b71c1c;
+  --red-600:  #c62828;
+  --red-100:  #ffcdd2;
+  --red-50:   #ffebee;
+
+  --purple-800: #4a148c;
+  --purple-600: #7b1fa2;
+  --purple-100: #e1bee7;
+
+  --slate-700: #455a64;
+  --slate-500: #607d8b;
+  --slate-200: #b0bec5;
+  --slate-100: #cfd8dc;
+
+  /* ── Semantic aliases ─────────────────────────────────── */
+  --color-primary:      var(--blue-700);
+  --color-primary-dark:  var(--blue-900);
+  --color-accent:       var(--teal-600);
+  --color-accent-dark:  var(--teal-800);
+  --color-bg:           #f0f5f9;
+  --color-surface:      #ffffff;
+  --color-text:         var(--grey-900);
+  --color-text-muted:   var(--grey-600);
+  --color-border:       var(--grey-200);
+  --color-focus:        var(--teal-600);
+  --color-danger:       var(--red-600);
+  --color-success:      var(--green-500);
+
+  /* ── Status colors ────────────────────────────────────── */
+  --status-reported:    var(--blue-500);
+  --status-verified:    var(--green-500);
+  --status-in-progress: var(--amber-600);
+  --status-resolved:    var(--slate-500);
+  --status-stale:       var(--red-600);
+
+  /* ── Spacing scale ────────────────────────────────────── */
+  --space-2xs: 0.125rem;   /*  2px */
+  --space-xs:  0.25rem;    /*  4px */
+  --space-sm:  0.5rem;     /*  8px */
+  --space-md:  1rem;       /* 16px */
+  --space-lg:  1.5rem;     /* 24px */
+  --space-xl:  2rem;       /* 32px */
+  --space-2xl: 3rem;       /* 48px */
+
+  /* ── Type scale ───────────────────────────────────────── */
+  --text-xs:   0.75rem;
+  --text-sm:   0.8125rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.3rem;
+  --text-2xl:  1.6rem;
+
+  /* ── Radii ────────────────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius:      6px;
+  --radius-lg:   10px;
+  --radius-pill: 50px;
+
+  /* ── Elevation ────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .06);
+  --shadow:    0 1px 3px rgba(0, 0, 0, .1),
+               0 1px 2px rgba(0, 0, 0, .06);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, .12);
+
+  /* ── Motion ───────────────────────────────────────────── */
+  --transition: 0.2s ease;
+}
+
+
+/* ================================================================
+   2. RESET & BOX MODEL
+   Normalize defaults; apply border-box globally.
+   ================================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;   /* box-model demo: every element uses border-box */
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-size: 100%;           /* 1 rem = 16 px by default */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue",
+               Arial, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+img { max-width: 100%; display: block; }
+
+
+/* ================================================================
+   3. UTILITY CLASSES
+   Visually-hidden (screen-reader only) & skip-link.
+   ================================================================ */
+
+/* Hides content visually while keeping it accessible to assistive tech */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip-link — visible only on :focus */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: var(--space-xs);
+  z-index: 1000;
+  background: var(--color-accent-dark);
+  color: #fff;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: var(--space-sm);
+}
+
+
+/* ================================================================
+   4. GLOBAL FOCUS STYLES
+   Every interactive element gets a visible focus ring via
+   :focus-visible so mouse users aren't distracted.
+   ================================================================ */
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Remove default focus ring only when :focus-visible is not active */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+
+/* ================================================================
+   5. TYPOGRAPHY — element selectors
+   ================================================================ */
+h1, h2, h3 {
+  line-height: 1.25;
+  color: var(--color-primary-dark);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover {
+  color: var(--color-accent-dark);
+  text-decoration: underline;
+}
+
+/* Attribute selector: style <abbr> with a title attribute */
+abbr[title] {
+  text-decoration: none;
+  color: var(--color-danger);
+  cursor: help;
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ================================================================
+   6. BUTTONS
+   ================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  border: 2px solid var(--grey-300);              /* box-model: border */
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--grey-800);
+  cursor: pointer;
+  transition: background var(--transition),
+              border-color var(--transition),
+              color var(--transition);
+}
+
+.btn:hover {
+  background: var(--grey-100);
+  border-color: var(--grey-400);
+}
+
+/* Pseudo-class: :disabled */
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary variant */
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* Secondary variant */
+.btn-secondary {
+  background: var(--grey-100);
+  border-color: var(--grey-300);
+  color: var(--grey-800);
+}
+.btn-secondary:hover {
+  background: var(--grey-200);
+}
+
+/* Danger variant */
+.btn-danger {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+.btn-danger:hover {
+  background: var(--red-700);
+  border-color: var(--red-700);
+}
+
+/* Small size */
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+}
+
+
+/* ================================================================
+   7. SITE HEADER & NAVIGATION — Flexbox
+   ================================================================ */
+.site-header {
+  background: linear-gradient(135deg, var(--blue-900), var(--teal-800));
+  color: #fff;
+  padding: var(--space-md) var(--space-lg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Descendant selector: nav inside the header */
+.site-header nav {
+  display: flex;                          /* Flexbox layout */
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.site-header h1 {
+  font-size: clamp(1.1rem, 3.5vw, var(--text-xl));
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.3;
+}
+
+/* Child selector: direct <li> children of .nav-links */
+.nav-links {
+  list-style: none;
+  display: flex;                          /* Flexbox for nav items */
+  gap: var(--space-md);
+}
+
+.nav-links > li {
+  display: inline;
+}
+
+/* Attribute selector on internal links */
+.nav-links a[href^="#"] {
+  color: var(--teal-100);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-xs) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.nav-links a[href^="#"]:hover {
+  color: #fff;
+  border-bottom-color: var(--teal-200);
+  text-decoration: none;
+}
+
+
+/* ================================================================
+   8. MAIN PAGE LAYOUT — CSS Grid (mobile: single column)
+   Desktop override in §20.
+   ================================================================ */
+#main-content {
+  display: grid;
+  grid-template-columns: 1fr;            /* mobile: 1 column */
+  gap: var(--space-lg);
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+}
+
+
+/* ================================================================
+   9. SECTION HEADINGS
+   ================================================================ */
+/* Descendant selector: h2 inside main */
+main h2 {
+  font-size: var(--text-lg);
+  color: var(--color-primary-dark);
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-md);
+  border-bottom: 3px solid var(--teal-200);
+}
+
+main h3 {
+  font-size: var(--text-base);
+  color: var(--grey-800);
+  margin-bottom: var(--space-sm);
+}
+
+
+/* ================================================================
+   10. REPORT FORM — surface card
+   ================================================================ */
+#report-section {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);              /* box-model: padding */
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border); /* box-model: border */
+}
+
+#report-form {
+  margin-top: var(--space-sm);
+}
+
+
+/* ================================================================
+   11. FORM FIELDS & VALIDATION
+   Demonstrates :hover, :focus-visible, :disabled, and
+   :invalid-after-interaction using the .touched helper class
+   (JS adds .touched on blur).
+   ================================================================ */
+
+.form-group {
+  margin-bottom: var(--space-md);        /* box-model: margin */
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--grey-800);
+  margin-bottom: var(--space-xs);
+}
+
+/* Element + attribute selectors for form controls */
+.form-group select,
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group input[type="search"],
+.form-group input[type="datetime-local"],
+.form-group textarea {
+  width: 100%;
+  padding: var(--space-sm) 0.75rem;      /* box-model: padding inside fields */
+  font-size: var(--text-base);
+  font-family: inherit;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 2px solid var(--grey-300);     /* box-model: explicit border */
+  border-radius: var(--radius);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+/* Pseudo-class: :hover on fields */
+.form-group select:hover,
+.form-group input:hover,
+.form-group textarea:hover {
+  border-color: var(--grey-400);
+}
+
+/* Pseudo-class: :focus-visible on fields */
+.form-group select:focus-visible,
+.form-group input:focus-visible,
+.form-group textarea:focus-visible {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, .2);
+  outline: none;
+}
+
+/* Pseudo-class: :disabled on fields */
+.form-group select:disabled,
+.form-group input:disabled,
+.form-group textarea:disabled {
+  background: var(--grey-100);
+  color: var(--grey-400);
+  cursor: not-allowed;
+}
+
+/* :invalid AFTER interaction ——
+   JS adds the class .touched on blur.  We combine .touched
+   with :invalid so errors only appear after the user leaves
+   the field, not while they are still typing.                 */
+.form-group .touched:invalid {
+  border-color: var(--color-danger);
+  background: var(--red-50);
+}
+
+/* Fallback: for inputs with a placeholder, pure-CSS detection */
+.form-group input:not(:focus):not(:placeholder-shown):invalid,
+.form-group textarea:not(:focus):not(:placeholder-shown):invalid {
+  border-color: var(--color-danger);
+  background: var(--red-50);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+/* Checkbox row */
+.form-group-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.form-group-checkbox input[type="checkbox"] {
+  margin-top: 0.25rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* Pseudo-class: :checked (accent handled above; we also style the label) */
+.form-group-checkbox input[type="checkbox"]:checked + label {
+  color: var(--color-accent-dark);
+}
+
+.form-group-checkbox label {
+  display: inline;
+  font-weight: 400;
+  font-size: var(--text-sm);
+}
+
+/* Per-field error message */
+.field-error {
+  display: block;
+  min-height: 1.15em;
+  margin-top: var(--space-2xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+/* Character counter */
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2xs);
+}
+
+/* Form action buttons row — Flexbox */
+.form-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+/* Aria-live form status feedback */
+.form-status {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-xs) 0;
+  min-height: 1.5em;
+}
+.form-status.status-success { color: var(--color-success); }
+.form-status.status-error   { color: var(--color-danger); }
+
+
+/* ================================================================
+   12. FILTER BAR — Flexbox
+   ================================================================ */
+#filter-section {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+.filter-bar {
+  display: flex;                          /* Flexbox wrapping row */
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-sm);
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: 700;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2xs);
+}
+
+.filter-group select,
+.filter-group input[type="search"] {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  border: 2px solid var(--grey-300);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  transition: border-color var(--transition);
+}
+
+.filter-group select:focus-visible,
+.filter-group input[type="search"]:focus-visible {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, .15);
+  outline: none;
+}
+
+/* Child selector: the clear-filters button directly inside the bar */
+.filter-bar > .btn-secondary {
+  flex: 0 0 auto;
+  align-self: flex-end;
+}
+
+
+/* ================================================================
+   13. SUMMARY LINE
+   ================================================================ */
+#summary-section {
+  background: var(--teal-50);
+  border-left: 5px solid var(--color-accent);
+  border-radius: var(--radius);
+  padding: 0.65rem var(--space-md);
+}
+
+#summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+  font-size: var(--text-sm);
+  color: var(--grey-800);
+}
+
+#summary-line strong {
+  font-weight: 800;
+}
+
+
+/* ================================================================
+   14. REPORT CARDS — CSS Grid container
+   Mobile: 1 column. Breakpoints widen in §19 and §20.
+   ================================================================ */
+#reports-list {
+  display: grid;
+  grid-template-columns: 1fr;            /* mobile: single column */
+  gap: var(--space-md);
+}
+
+/* Each card is an <article> — element selector + class */
+article.report-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border); /* box-model: border on cards */
+  border-left: 5px solid var(--grey-400);
+  padding: var(--space-md) var(--space-lg);  /* box-model: padding on cards */
+  margin: 0;                             /* box-model: explicit margin */
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+/* Pseudo-class: :hover on cards */
+article.report-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Status-coloured left border — class selectors */
+.report-card.border-reported    { border-left-color: var(--status-reported); }
+.report-card.border-verified    { border-left-color: var(--status-verified); }
+.report-card.border-in-progress { border-left-color: var(--status-in-progress); }
+.report-card.border-resolved    { border-left-color: var(--status-resolved); }
+.report-card.border-stale       { border-left-color: var(--status-stale); }
+
+/* Card sub-elements — descendant selectors */
+
+.report-card .card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.report-card .card-area {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--grey-900);
+  margin-bottom: var(--space-2xs);
+}
+
+.report-card .card-type {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.report-card .card-desc {
+  font-size: var(--text-sm);
+  color: var(--grey-800);
+  line-height: 1.55;
+  margin-bottom: var(--space-sm);
+  /* Clamp long text to 3 lines in collapsed view */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.report-card .card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.report-card .card-provenance {
+  font-size: 0.7rem;
+  color: var(--grey-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+/* ================================================================
+   15. STATUS BADGES — pill-shaped, coloured by status
+   Each badge carries text so colour is not the only indicator.
+   ================================================================ */
+.status-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  line-height: 1.4;
+}
+
+.status-reported    { background: var(--status-reported); }
+.status-verified    { background: var(--status-verified); }
+.status-in-progress { background: var(--status-in-progress); }
+.status-resolved    { background: var(--status-resolved); }
+.status-stale       { background: var(--status-stale); }
+
+
+/* ================================================================
+   16. VERIFICATION & SPECIAL BADGES
+   Not colour-alone: every badge contains descriptive text.
+   ================================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--radius-pill);
+  line-height: 1.4;
+}
+
+/* Confirmed — green fill, dark-green text (contrast ≈ 7 : 1) */
+.badge-confirmed {
+  background: var(--green-100);
+  color: var(--green-700);
+}
+
+/* Unverified — amber fill, dark-amber text (contrast ≈ 5 : 1) */
+.badge-unverified {
+  background: var(--amber-100);
+  color: var(--amber-800);
+}
+
+/* Resolved — grey-blue fill, dark-slate text (contrast ≈ 5 : 1) */
+.badge-resolved {
+  background: var(--slate-100);
+  color: var(--slate-700);
+}
+
+/* Stale — red outline, no fill; red text on white (contrast ≈ 6 : 1) */
+.badge-stale {
+  background: transparent;
+  color: var(--red-600);
+  border: 2px solid var(--red-600);
+  padding: calc(0.18rem - 2px) calc(0.55rem - 2px);   /* compensate for border */
+}
+
+/* Merged — purple fill, dark-purple text (contrast ≈ 7 : 1) */
+.badge-merged {
+  background: var(--purple-100);
+  color: var(--purple-800);
+}
+
+
+/* ================================================================
+   17. CARD EXPAND / DETAILS TOGGLE
+   ================================================================ */
+.card-toggle {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-2xs) 0;
+  font-family: inherit;
+}
+
+.card-toggle:hover {
+  color: var(--color-accent-dark);
+  text-decoration: underline;
+}
+
+.card-details {
+  display: none;
+  margin-top: var(--space-sm);
+}
+
+.card-details.open {
+  display: block;
+}
+
+
+/* ================================================================
+   18. STATUS LOG (inside expanded card)
+   ================================================================ */
+.card-log {
+  list-style: none;
+  margin: var(--space-sm) 0;
+  padding-left: var(--space-md);
+  border-left: 3px solid var(--teal-200);
+}
+
+.card-log li {
+  font-size: var(--text-xs);
+  color: var(--grey-800);
+  padding: var(--space-xs) 0;
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Descendant selector: <time> inside log */
+.card-log li time {
+  flex-shrink: 0;
+  min-width: 7rem;
+  color: var(--color-text-muted);
+}
+
+/* Class selectors for log-entry types */
+.log-type-status       { font-weight: 700; }
+.log-type-verification { color: var(--green-700); }
+.log-type-merge        { color: var(--purple-600); font-style: italic; }
+.log-type-edit         { color: var(--grey-600); font-style: italic; }
+.log-type-notice       { color: var(--color-primary); }
+
+
+/* ================================================================
+   19. CARD ACTIONS
+   ================================================================ */
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Child selector: first button in actions */
+.card-actions > button:first-child {
+  margin-right: auto;       /* push remaining buttons to the right */
+}
+
+/* Inline merge row */
+.merge-row {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+  margin-top: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.merge-row select {
+  flex: 1 1 10rem;
+  padding: 0.3rem 0.4rem;
+  font-size: var(--text-xs);
+  border: 2px solid var(--grey-300);
+  border-radius: var(--radius);
+}
+
+
+/* ================================================================
+   20. EMPTY STATE
+   ================================================================ */
+.empty-state {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-md);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  background: var(--grey-50);
+  border: 2px dashed var(--grey-300);
+  border-radius: var(--radius-lg);
+}
+
+.empty-state a {
+  font-weight: 600;
+}
+
+
+/* ================================================================
+   21. NOTICES (aside)
+   ================================================================ */
+#notices-section {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+}
+
+#notices-list {
+  list-style: none;
+  margin-bottom: var(--space-md);
+}
+
+/* Descendant selector: <li> inside notices list */
+#notices-list li {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Pseudo-class: :last-child removes trailing border */
+#notices-list li:last-child {
+  border-bottom: none;
+}
+
+.notice-time {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.notice-title {
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--grey-900);
+}
+
+.notice-message {
+  font-size: var(--text-sm);
+  color: var(--grey-800);
+  margin-top: var(--space-2xs);
+}
+
+.notice-delete {
+  float: right;
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-2xs);
+  font-family: inherit;
+}
+
+.notice-delete:hover {
+  text-decoration: underline;
+}
+
+#notice-form {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+
+/* ================================================================
+   22. TOAST NOTIFICATIONS
+   ================================================================ */
+#toast-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  padding: 0.65rem var(--space-md);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  max-width: 22rem;
+  animation: toast-in 0.3s ease forwards;
+}
+
+.toast-success { background: var(--color-success); }
+.toast-error   { background: var(--color-danger); }
+.toast-info    { background: var(--color-primary); }
+
+.toast.removing {
+  animation: toast-out 0.3s ease forwards;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(1.25rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(1.25rem); }
+}
+
+
+/* ================================================================
+   23. FOOTER
+   ================================================================ */
+footer.site-footer {
+  background: var(--grey-900);
+  color: var(--grey-400);
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
+  font-size: var(--text-sm);
+  margin-top: var(--space-xl);
+}
+
+.site-footer p {
+  margin-bottom: var(--space-xs);
+}
+
+/* ID selector + descendant */
+.site-footer .btn {
+  font-size: var(--text-xs);
+}
+
+.ai-disclosure {
+  font-style: italic;
+  color: var(--grey-600);
+  font-size: var(--text-xs);
+}
+
+
+/* ================================================================
+   24. RESPONSIVE — Tablet (≥ 600 px)
+   Report cards go to 2 columns; filter items get more room.
+   ================================================================ */
+@media (min-width: 600px) {
+
+  .site-header h1 {
+    font-size: var(--text-xl);
+  }
+
+  /* Grid: 2-column card layout */
+  #reports-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filter-group {
+    flex: 1 1 9rem;
+  }
+
+  /* Widen form actions */
+  .form-actions {
+    gap: var(--space-md);
+  }
+}
+
+
+/* ================================================================
+   25. RESPONSIVE — Desktop (≥ 1024 px)
+   Page becomes a 2-column grid: form sidebar + content.
+   Report cards expand to 3 columns within the content column.
+   ================================================================ */
+@media (min-width: 1024px) {
+
+  .site-header h1 {
+    font-size: var(--text-2xl);
+  }
+
+  /* Main layout: sidebar (form) + content area — CSS Grid */
+  #main-content {
+    grid-template-columns: 320px 1fr;
+    gap: var(--space-xl);
+    padding: var(--space-xl) var(--space-xl);
+  }
+
+  /* Form sidebar spans all content rows in column 1 */
+  #report-section {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+    position: sticky;
+    top: calc(72px + var(--space-lg));    /* below the sticky header */
+    align-self: start;
+    max-height: calc(100vh - 72px - var(--space-xl));
+    overflow-y: auto;
+  }
+
+  /* Everything else flows into column 2 */
+  #filter-section,
+  #summary-section,
+  #reports-section,
+  #notices-section {
+    grid-column: 2;
+  }
+
+  /* Grid: 3-column card layout */
+  #reports-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filter-group {
+    flex: 0 1 11rem;
+  }
+}
+
+
+/* ================================================================
+   26. PRINT
+   Hide interactive chrome; keep report cards readable.
+   ================================================================ */
+@media print {
+  .site-header,
+  .filter-bar,
+  .card-actions,
+  .form-actions,
+  #report-section,
+  #notice-form,
+  #toast-container,
+  .skip-link,
+  .site-footer .btn {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  #main-content {
+    display: block;
+  }
+
+  article.report-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}

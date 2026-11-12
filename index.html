@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Outage Reporting Board</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/data.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- Skip-to-content link for keyboard / screen-reader users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ════════════════════════════════════════════════════
+       HEADER
+       ════════════════════════════════════════════════════ -->
+  <header class="site-header">
+    <nav aria-label="Primary navigation">
+      <h1>&#x1F4A7; Water Outage Reporting Board</h1>
+      <ul class="nav-links">
+        <li><a href="#report-section">Report</a></li>
+        <li><a href="#reports-section">Board</a></li>
+        <li><a href="#notices-section">Notices</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════
+       MAIN CONTENT
+       ════════════════════════════════════════════════════ -->
+  <main id="main-content">
+
+    <!-- ── Report-an-Outage Form ─────────────────────── -->
+    <section id="report-section" aria-labelledby="form-heading">
+      <h2 id="form-heading">Report an Outage</h2>
+
+      <form id="report-form" novalidate>
+
+        <!-- Area -->
+        <div class="form-group">
+          <label for="input-area">Area <abbr title="required">*</abbr></label>
+          <select id="input-area" name="area" required>
+            <option value="">— Select area —</option>
+            <option value="Block A">Block A</option>
+            <option value="Block B">Block B</option>
+            <option value="Block C">Block C</option>
+            <option value="Market Road">Market Road</option>
+            <option value="Green Park">Green Park</option>
+            <option value="Old Town">Old Town</option>
+            <option value="Station Colony">Station Colony</option>
+            <option value="University Road">University Road</option>
+          </select>
+          <span class="field-error" id="error-area"></span>
+        </div>
+
+        <!-- Issue Type -->
+        <div class="form-group">
+          <label for="input-type">Issue Type <abbr title="required">*</abbr></label>
+          <select id="input-type" name="issueType" required>
+            <option value="">— Select type —</option>
+            <option value="no-water">No Water</option>
+            <option value="low-pressure">Low Pressure</option>
+            <option value="dirty-water">Dirty Water</option>
+            <option value="pipe-burst">Pipe Burst</option>
+          </select>
+          <span class="field-error" id="error-type"></span>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="input-desc">Description <abbr title="required">*</abbr></label>
+          <textarea id="input-desc" name="description" rows="4"
+                    required minlength="15" maxlength="300"
+                    placeholder="Describe the outage in your area (15–300 characters)"></textarea>
+          <span class="field-error" id="error-desc"></span>
+          <small class="char-count" id="desc-count">0 / 300</small>
+        </div>
+
+        <!-- Contact Number (optional) -->
+        <div class="form-group">
+          <label for="input-contact">Contact Number <small>(optional)</small></label>
+          <input type="tel" id="input-contact" name="contact"
+                 pattern="[0-9]{11}"
+                 title="Enter an 11-digit phone number, digits only"
+                 placeholder="03001234567">
+          <span class="field-error" id="error-contact"></span>
+        </div>
+
+        <!-- Time Noticed -->
+        <div class="form-group">
+          <label for="input-time">Time Noticed <abbr title="required">*</abbr></label>
+          <input type="datetime-local" id="input-time" name="timeNoticed" required>
+          <span class="field-error" id="error-time"></span>
+        </div>
+
+        <!-- Consent -->
+        <div class="form-group form-group-checkbox">
+          <input type="checkbox" id="input-consent" name="consent" required>
+          <label for="input-consent">
+            I confirm this report is accurate to the best of my knowledge <abbr title="required">*</abbr>
+          </label>
+          <span class="field-error" id="error-consent"></span>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+          <button type="reset" class="btn btn-secondary">Clear</button>
+          <button type="submit" class="btn btn-primary">Submit Report</button>
+        </div>
+      </form>
+
+      <!-- Aria-live region for form submission feedback -->
+      <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ── Filter Bar ────────────────────────────────── -->
+    <section id="filter-section" aria-labelledby="filter-heading">
+      <h2 id="filter-heading">Filter Reports</h2>
+
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filter-area">Area</label>
+          <select id="filter-area">
+            <option value="">All Areas</option>
+            <option value="Block A">Block A</option>
+            <option value="Block B">Block B</option>
+            <option value="Block C">Block C</option>
+            <option value="Market Road">Market Road</option>
+            <option value="Green Park">Green Park</option>
+            <option value="Old Town">Old Town</option>
+            <option value="Station Colony">Station Colony</option>
+            <option value="University Road">University Road</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status">
+            <option value="">All Statuses</option>
+            <option value="reported">Reported</option>
+            <option value="verified">Verified</option>
+            <option value="in-progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="stale">Stale</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-verified">Verification</label>
+          <select id="filter-verified">
+            <option value="">All</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="unverified">Unverified</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-search">Search</label>
+          <input type="search" id="filter-search"
+                 placeholder="Search by keyword&#8230;"
+                 aria-label="Search reports by keyword">
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-sort">Sort By</label>
+          <select id="filter-sort">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="most-reports">Most Reports</option>
+          </select>
+        </div>
+
+        <button type="button" id="btn-clear-filters" class="btn btn-secondary">Clear Filters</button>
+      </div>
+    </section>
+
+    <!-- ── Summary Line ──────────────────────────────── -->
+    <section id="summary-section" aria-labelledby="summary-heading">
+      <h2 id="summary-heading" class="visually-hidden">Board Statistics</h2>
+      <p id="summary-line">
+        <span>Total: <strong id="count-total">0</strong></span>
+        <span>Confirmed: <strong id="count-confirmed">0</strong></span>
+        <span>Unverified: <strong id="count-unverified">0</strong></span>
+        <span>Resolved: <strong id="count-resolved">0</strong></span>
+        <span>Stale: <strong id="count-stale">0</strong></span>
+      </p>
+    </section>
+
+    <!-- ── Reports List ──────────────────────────────── -->
+    <section id="reports-section" aria-labelledby="reports-heading">
+      <h2 id="reports-heading">Outage Reports</h2>
+
+      <div id="reports-list" role="list" aria-label="List of outage reports">
+        <!-- <article> cards rendered by app.js -->
+      </div>
+
+      <p id="empty-state" class="empty-state" hidden>
+        No reports match your current filters. Try adjusting the filters above or
+        <a href="#report-section">submit a new report</a>.
+      </p>
+    </section>
+
+    <!-- ── Notices ───────────────────────────────────── -->
+    <aside id="notices-section" aria-labelledby="notices-heading">
+      <h2 id="notices-heading">Notices</h2>
+
+      <ol id="notices-list" aria-label="Timestamped board notices">
+        <!-- <li> items rendered by app.js -->
+      </ol>
+
+      <p id="notices-empty" class="empty-state" hidden>No notices yet.</p>
+
+      <!-- Small form to add a notice -->
+      <form id="notice-form" aria-label="Add a board notice">
+        <h3>Add a Notice</h3>
+
+        <div class="form-group">
+          <label for="notice-title">Title <abbr title="required">*</abbr></label>
+          <input type="text" id="notice-title" name="noticeTitle" required
+                 placeholder="Short title for this notice">
+        </div>
+
+        <div class="form-group">
+          <label for="notice-message">Message <abbr title="required">*</abbr></label>
+          <textarea id="notice-message" name="noticeMessage" rows="2" required
+                    placeholder="Details of the notice&#8230;"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Post Notice</button>
+        </div>
+      </form>
+    </aside>
+
+  </main>
+
+  <!-- ════════════════════════════════════════════════════
+       FOOTER
+       ════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <p>&copy; 2026 Water Outage Reporting Board &mdash; Web Engineering Assignment&nbsp;1</p>
+    <p>Data is stored locally in your browser using localStorage.</p>
+    <p class="ai-disclosure">
+      Portions of this project&rsquo;s code and documentation were developed with the
+      assistance of AI&#8209;based tools.
+    </p>
+  </footer>
+
+</body>
+</html>
