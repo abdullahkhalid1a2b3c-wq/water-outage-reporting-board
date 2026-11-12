@@ -25,6 +25,15 @@
         <li><a href="#notices-section">Notices</a></li>
       </ul>
     </nav>
+    <div class="role-controls">
+      <label for="role-switcher">Viewing as</label>
+      <select id="role-switcher">
+        <option value="resident">Resident</option>
+        <option value="admin">Admin</option>
+      </select>
+      <span id="role-badge" class="role-badge role-badge-resident">Resident</span>
+    </div>
+    <div id="role-announcement" class="visually-hidden" role="status" aria-live="polite"></div>
   </header>
 
   <!-- ════════════════════════════════════════════════════
@@ -188,6 +197,11 @@
       </p>
     </section>
 
+    <!-- ── Admin Dashboard (Simulated Admin View Only) ── -->
+    <section id="admin-dashboard" aria-labelledby="admin-heading" hidden>
+      <!-- Rendered dynamically by app.js when role is Admin -->
+    </section>
+
     <!-- ── Reports List ──────────────────────────────── -->
     <section id="reports-section" aria-labelledby="reports-heading">
       <h2 id="reports-heading">Outage Reports</h2>
@@ -212,8 +226,8 @@
 
       <p id="notices-empty" class="empty-state" hidden>No notices yet.</p>
 
-      <!-- Small form to add a notice -->
-      <form id="notice-form" aria-label="Add a board notice">
+      <!-- Small form to add a notice (Admin only) -->
+      <form id="notice-form" aria-label="Add a board notice" hidden>
         <h3>Add a Notice</h3>
 
         <div class="form-group">
@@ -242,11 +256,15 @@
   <footer class="site-footer">
     <p>&copy; 2026 Water Outage Reporting Board &mdash; Web Engineering Assignment&nbsp;1</p>
     <p>Data is stored locally in your browser using localStorage.</p>
+    <p class="role-simulation-note">Roles are simulated in the browser for demonstration. No real authentication.</p>
     <p class="ai-disclosure">
       Portions of this project&rsquo;s code and documentation were developed with the
       assistance of AI&#8209;based tools.
     </p>
   </footer>
+
+  <!-- ─── Toast Notifications Container ──────────────── -->
+  <output id="toast-container" aria-live="polite"></output>
 
 </body>
 </html>

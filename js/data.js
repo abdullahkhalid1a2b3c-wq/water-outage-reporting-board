@@ -199,8 +199,14 @@ const SAMPLE_NOTICES = [
   }
 ];
 
+// Simulated Roles
+const ROLE_RESIDENT = 'resident';
+const ROLE_ADMIN = 'admin';
+
 // Expose constants to window or global scope for explicit access
 const globalScope = typeof window !== 'undefined' ? window : globalThis;
+globalScope.ROLE_RESIDENT = ROLE_RESIDENT;
+globalScope.ROLE_ADMIN = ROLE_ADMIN;
 globalScope.AREAS = AREAS;
 globalScope.ISSUE_TYPES = ISSUE_TYPES;
 globalScope.STATUSES = STATUSES;

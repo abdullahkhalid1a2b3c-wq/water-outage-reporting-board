@@ -10,6 +10,10 @@
 const STALE_HOURS = 24;
 const DUPLICATE_WINDOW_HOURS = 2;
 const STORAGE_KEY = 'water_outage_board_data';
+const ROLE_RESIDENT = 'resident';
+const ROLE_ADMIN = 'admin';
+const ROLE_STORAGE_KEY = 'water_outage_board_role';
+const CONFIRMED_STORAGE_KEY = 'water_outage_board_confirmed';
 
 /* ═══════════════════════════════════════════════════════════
    Application State
@@ -17,6 +21,8 @@ const STORAGE_KEY = 'water_outage_board_data';
 let reports = [];
 let notices = [];
 let pendingDuplicate = null; // Stores data if a near-duplicate is detected on submit
+let currentRole = ROLE_RESIDENT; // Simulated user role: 'resident' or 'admin'
+let confirmedReportIds = []; // Report IDs confirmed by this resident browser session
 
 /* ═══════════════════════════════════════════════════════════
    DOM Element References
@@ -65,6 +71,12 @@ const noticesEmpty = document.getElementById('notices-empty');
 const noticeForm = document.getElementById('notice-form');
 const noticeTitle = document.getElementById('notice-title');
 const noticeMessage = document.getElementById('notice-message');
+
+// Role & Dashboard Elements
+const roleSwitcher = document.getElementById('role-switcher');
+const roleBadge = document.getElementById('role-badge');
+const roleAnnouncement = document.getElementById('role-announcement');
+const adminDashboard = document.getElementById('admin-dashboard');
 
 /* ═══════════════════════════════════════════════════════════
    1. Storage & Initialization
@@ -149,6 +161,10 @@ function saveData() {
  * Resets board data to the sample set defined in data.js.
  */
 function resetToSampleData(shouldNotify = true) {
+  if (!isAdmin() && shouldNotify) {
+    showToast('Admin access required.', 'error');
+    return;
+  }
   // Deep copy sample data so runtime mutations do not alter seeds
   reports = JSON.parse(JSON.stringify(window.SAMPLE_REPORTS || []));
   notices = JSON.parse(JSON.stringify(window.SAMPLE_NOTICES || []));
@@ -156,6 +172,7 @@ function resetToSampleData(shouldNotify = true) {
   renderAll();
   if (shouldNotify) {
     showFormStatus('All sample reports and notices have been reset.', 'status-success');
+    showToast('Sample data reset successfully.', 'success');
   }
 }
 
@@ -174,6 +191,365 @@ function showStorageWarning(msg) {
     if (main) main.insertBefore(warningBanner, main.firstChild);
   }
   warningBanner.textContent = msg;
+}
+
+/**
+ * Displays a lightweight toast notification in #toast-container.
+ */
+function showToast(msg, type = 'info') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('output');
+    container.id = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, 3500);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   1B. Simulated Role Management (RBAC)
+   ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Checks whether the active simulated role is Admin.
+ */
+function isAdmin() {
+  return currentRole === ROLE_ADMIN;
+}
+
+/**
+ * Loads the stored role from localStorage with fallback to Resident.
+ */
+function loadRole() {
+  try {
+    const saved = localStorage.getItem(ROLE_STORAGE_KEY);
+    if (saved === ROLE_ADMIN || saved === ROLE_RESIDENT) {
+      currentRole = saved;
+    } else {
+      currentRole = ROLE_RESIDENT;
+    }
+  } catch (err) {
+    console.error('Failed to read role from storage:', err);
+    currentRole = ROLE_RESIDENT;
+  }
+}
+
+/**
+ * Sets the active role, persists it, updates UI state, and notifies screen readers.
+ */
+function setRole(role) {
+  const targetRole = role === ROLE_ADMIN ? ROLE_ADMIN : ROLE_RESIDENT;
+  currentRole = targetRole;
+  try {
+    localStorage.setItem(ROLE_STORAGE_KEY, currentRole);
+  } catch (err) {
+    console.error('Failed to save role to storage:', err);
+  }
+  applyRoleToUI();
+  renderAll();
+
+  const roleName = currentRole === ROLE_ADMIN ? 'Admin' : 'Resident';
+  const announcement = `Now viewing as ${roleName}`;
+  if (roleAnnouncement) {
+    roleAnnouncement.textContent = announcement;
+  }
+  showToast(announcement, 'info');
+}
+
+/**
+ * Loads the list of report IDs confirmed by the resident from localStorage.
+ */
+function loadConfirmedReportIds() {
+  try {
+    const raw = localStorage.getItem(CONFIRMED_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        confirmedReportIds = parsed;
+        return;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load confirmed report IDs:', err);
+  }
+  confirmedReportIds = [];
+}
+
+/**
+ * Persists the list of confirmed report IDs to localStorage.
+ */
+function saveConfirmedReportIds() {
+  try {
+    localStorage.setItem(CONFIRMED_STORAGE_KEY, JSON.stringify(confirmedReportIds));
+  } catch (err) {
+    console.error('Failed to save confirmed report IDs:', err);
+  }
+}
+
+/**
+ * Synchronizes DOM controls and visibility with the current role.
+ */
+function applyRoleToUI() {
+  if (roleSwitcher) {
+    roleSwitcher.value = currentRole;
+  }
+  if (roleBadge) {
+    const roleName = currentRole === ROLE_ADMIN ? 'Admin' : 'Resident';
+    roleBadge.textContent = roleName;
+    roleBadge.className = `role-badge ${currentRole === ROLE_ADMIN ? 'role-badge-admin' : 'role-badge-resident'}`;
+  }
+  if (noticeForm) {
+    noticeForm.hidden = !isAdmin();
+  }
+  const resetBtn = document.getElementById('btn-reset-data');
+  if (resetBtn) {
+    resetBtn.hidden = !isAdmin();
+  }
+  if (adminDashboard) {
+    adminDashboard.hidden = !isAdmin();
+    if (!isAdmin()) {
+      adminDashboard.innerHTML = '';
+    } else {
+      renderAdminDashboard();
+    }
+  }
+}
+
+/**
+ * Renders the Admin Dashboard section (Needs Moderation, Stale Reports, Area Statistics).
+ */
+function renderAdminDashboard() {
+  if (!adminDashboard || !isAdmin()) return;
+  adminDashboard.innerHTML = '';
+
+  const heading = document.createElement('h2');
+  heading.id = 'admin-heading';
+  heading.textContent = 'Admin Moderator Dashboard';
+  adminDashboard.appendChild(heading);
+
+  const grid = document.createElement('div');
+  grid.className = 'dashboard-grid';
+
+  // 1. Needs Moderation (unverified, non-resolved reports)
+  const moderationCard = document.createElement('div');
+  moderationCard.className = 'dashboard-card';
+
+  const unverified = reports.filter(r => r.mergedInto === null && !r.verified && r.status !== 'resolved');
+  const modHeader = document.createElement('h3');
+  modHeader.textContent = `Needs Moderation (${unverified.length})`;
+  moderationCard.appendChild(modHeader);
+
+  if (unverified.length === 0) {
+    const emptyP = document.createElement('p');
+    emptyP.className = 'dashboard-empty';
+    emptyP.textContent = 'All active reports have been verified.';
+    moderationCard.appendChild(emptyP);
+  } else {
+    const ul = document.createElement('ul');
+    ul.className = 'dashboard-list';
+    unverified.forEach(r => {
+      const li = document.createElement('li');
+      const textSpan = document.createElement('span');
+      textSpan.className = 'dashboard-list-text';
+      const issueLabel = window.ISSUE_TYPES[r.issueType] || r.issueType;
+      textSpan.textContent = `${r.area} — ${issueLabel} (${r.reportCount} rpt)`;
+
+      const btnVerify = document.createElement('button');
+      btnVerify.type = 'button';
+      btnVerify.className = 'btn btn-sm btn-primary';
+      btnVerify.textContent = 'Verify';
+      btnVerify.setAttribute('aria-label', `Quick verify report for ${r.area}`);
+      btnVerify.addEventListener('click', () => handleVerifyReport(r.id));
+
+      li.appendChild(textSpan);
+      li.appendChild(btnVerify);
+      ul.appendChild(li);
+    });
+    moderationCard.appendChild(ul);
+  }
+  grid.appendChild(moderationCard);
+
+  // 2. Stale Reports (older than STALE_HOURS without update)
+  const staleCard = document.createElement('div');
+  staleCard.className = 'dashboard-card';
+
+  const staleList = reports.filter(r => r.mergedInto === null && isReportStale(r));
+  const staleHeader = document.createElement('h3');
+  staleHeader.textContent = `Stale Reports (${staleList.length})`;
+  staleCard.appendChild(staleHeader);
+
+  if (staleList.length === 0) {
+    const emptyP = document.createElement('p');
+    emptyP.className = 'dashboard-empty';
+    emptyP.textContent = 'No stale reports detected.';
+    staleCard.appendChild(emptyP);
+  } else {
+    const ul = document.createElement('ul');
+    ul.className = 'dashboard-list';
+    staleList.forEach(r => {
+      const li = document.createElement('li');
+      const textSpan = document.createElement('span');
+      textSpan.className = 'dashboard-list-text';
+      textSpan.textContent = `${r.area} — updated ${formatReadableDate(r.updatedAt)}`;
+
+      const btnReconf = document.createElement('button');
+      btnReconf.type = 'button';
+      btnReconf.className = 'btn btn-sm btn-primary';
+      btnReconf.textContent = 'Re-confirm';
+      btnReconf.setAttribute('aria-label', `Quick re-confirm stale report for ${r.area}`);
+      btnReconf.addEventListener('click', () => handleReconfirmReport(r.id));
+
+      li.appendChild(textSpan);
+      li.appendChild(btnReconf);
+      ul.appendChild(li);
+    });
+    staleCard.appendChild(ul);
+  }
+  grid.appendChild(staleCard);
+
+  // 3. Reports per Area Breakdown Table
+  const tableCard = document.createElement('div');
+  tableCard.className = 'dashboard-card dashboard-card-full';
+
+  const tableHeader = document.createElement('h3');
+  tableHeader.textContent = 'Reports per Area Breakdown';
+  tableCard.appendChild(tableHeader);
+
+  const tableWrapper = document.createElement('div');
+  tableWrapper.className = 'table-responsive';
+
+  const table = document.createElement('table');
+  table.className = 'admin-table';
+
+  const caption = document.createElement('caption');
+  caption.textContent = 'Summary of active outage reports across all municipal areas';
+  table.appendChild(caption);
+
+  const thead = document.createElement('thead');
+  const theadRow = document.createElement('tr');
+  ['Area', 'Total Reports', 'Confirmed', 'Unverified'].forEach(text => {
+    const th = document.createElement('th');
+    th.setAttribute('scope', 'col');
+    th.textContent = text;
+    theadRow.appendChild(th);
+  });
+  thead.appendChild(theadRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  const activeReports = reports.filter(r => r.mergedInto === null);
+  const areasList = window.AREAS || [];
+
+  let grandTotal = 0;
+  let grandConfirmed = 0;
+  let grandUnverified = 0;
+
+  for (let i = 0; i < areasList.length; i++) {
+    const areaName = areasList[i];
+    const areaReports = activeReports.filter(r => r.area === areaName);
+    const totalCount = areaReports.length;
+    let confirmedCount = 0;
+    let unverifiedCount = 0;
+
+    areaReports.forEach(r => {
+      if (r.verified) confirmedCount++;
+      else unverifiedCount++;
+    });
+
+    grandTotal += totalCount;
+    grandConfirmed += confirmedCount;
+    grandUnverified += unverifiedCount;
+
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.setAttribute('scope', 'row');
+    th.textContent = areaName;
+    tr.appendChild(th);
+
+    const tdTotal = document.createElement('td');
+    tdTotal.textContent = String(totalCount);
+    tr.appendChild(tdTotal);
+
+    const tdConf = document.createElement('td');
+    tdConf.textContent = String(confirmedCount);
+    tr.appendChild(tdConf);
+
+    const tdUnver = document.createElement('td');
+    tdUnver.textContent = String(unverifiedCount);
+    tr.appendChild(tdUnver);
+
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  const tfoot = document.createElement('tfoot');
+  const tfootRow = document.createElement('tr');
+  const thFoot = document.createElement('th');
+  thFoot.setAttribute('scope', 'row');
+  thFoot.textContent = 'All Areas';
+  tfootRow.appendChild(thFoot);
+
+  const tdTotFoot = document.createElement('td');
+  tdTotFoot.textContent = String(grandTotal);
+  tfootRow.appendChild(tdTotFoot);
+
+  const tdConfFoot = document.createElement('td');
+  tdConfFoot.textContent = String(grandConfirmed);
+  tfootRow.appendChild(tdConfFoot);
+
+  const tdUnvFoot = document.createElement('td');
+  tdUnvFoot.textContent = String(grandUnverified);
+  tfootRow.appendChild(tdUnvFoot);
+
+  tfoot.appendChild(tfootRow);
+  table.appendChild(tfoot);
+
+  tableWrapper.appendChild(table);
+  tableCard.appendChild(tableWrapper);
+  grid.appendChild(tableCard);
+
+  adminDashboard.appendChild(grid);
+}
+
+/**
+ * Handles resident clicking "I'm affected too" on an active report.
+ */
+function handleResidentConfirm(id) {
+  if (confirmedReportIds.includes(id)) {
+    showToast('You have already confirmed this outage.', 'error');
+    return;
+  }
+  const rep = reports.find(r => r.id === id);
+  if (!rep) return;
+  if (rep.status === 'resolved') {
+    showToast('Cannot confirm a resolved report.', 'error');
+    return;
+  }
+
+  rep.reportCount += 1;
+  rep.updatedAt = new Date().toISOString();
+
+  // Auto-verify if reaches threshold of 3
+  if (rep.reportCount >= 3 && !rep.verified && rep.status === 'reported') {
+    rep.verified = true;
+    rep.status = 'verified';
+  }
+
+  confirmedReportIds.push(id);
+  saveConfirmedReportIds();
+  saveData();
+  renderAll();
+  showToast(`Thank you! Confirmation recorded for ${rep.area}.`, 'success');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -369,57 +745,79 @@ function createReportCardElement(r) {
     card.appendChild(contactPara);
   }
 
-  // 7. Moderation & Action Buttons Row
+  // 7. Action & Moderation Buttons
   const actionsDiv = document.createElement('div');
   actionsDiv.className = 'card-actions';
 
-  // "Verify" button (if not already verified and not resolved)
-  if (!r.verified && r.status !== 'resolved') {
-    const btnVerify = document.createElement('button');
-    btnVerify.type = 'button';
-    btnVerify.className = 'btn btn-sm btn-primary';
-    btnVerify.textContent = 'Verify';
-    btnVerify.setAttribute('aria-label', `Verify outage report for ${r.area}`);
-    btnVerify.addEventListener('click', () => handleVerifyReport(r.id));
-    actionsDiv.appendChild(btnVerify);
+  // "I'm affected too" button: visible on non-resolved reports (Resident & Admin)
+  if (r.status !== 'resolved') {
+    const btnAffect = document.createElement('button');
+    btnAffect.type = 'button';
+    btnAffect.className = 'btn btn-sm btn-primary';
+    const alreadyConfirmed = confirmedReportIds.includes(r.id);
+    if (alreadyConfirmed) {
+      btnAffect.textContent = 'You confirmed this';
+      btnAffect.disabled = true;
+      btnAffect.setAttribute('aria-label', `You already confirmed the outage in ${r.area}`);
+    } else {
+      btnAffect.textContent = "I'm affected too";
+      btnAffect.setAttribute('aria-label', `Confirm that you are also affected by outage in ${r.area}`);
+      btnAffect.addEventListener('click', () => handleResidentConfirm(r.id));
+    }
+    actionsDiv.appendChild(btnAffect);
   }
 
-  // Allowed Status Transition Buttons
-  const allowed = window.ALLOWED_TRANSITIONS[r.status] || [];
-  allowed.forEach(nextStatus => {
-    // Skip 'verified' as a direct button if it duplicates the Verify button above
-    if (nextStatus === 'verified' && !r.verified) return;
+  // Admin-only controls: Only created in the DOM when isAdmin() is true
+  if (isAdmin()) {
+    // "Verify" button (if not already verified and not resolved)
+    if (!r.verified && r.status !== 'resolved') {
+      const btnVerify = document.createElement('button');
+      btnVerify.type = 'button';
+      btnVerify.className = 'btn btn-sm btn-secondary';
+      btnVerify.textContent = 'Verify';
+      btnVerify.setAttribute('aria-label', `Verify outage report for ${r.area}`);
+      btnVerify.addEventListener('click', () => handleVerifyReport(r.id));
+      actionsDiv.appendChild(btnVerify);
+    }
 
-    const btnTransition = document.createElement('button');
-    btnTransition.type = 'button';
-    btnTransition.className = 'btn btn-sm btn-secondary';
-    btnTransition.textContent = `Mark ${window.STATUSES[nextStatus] || nextStatus}`;
-    btnTransition.setAttribute('aria-label', `Mark status as ${window.STATUSES[nextStatus] || nextStatus} for ${r.area}`);
-    btnTransition.addEventListener('click', () => handleStatusTransition(r.id, nextStatus));
-    actionsDiv.appendChild(btnTransition);
-  });
+    // Allowed Status Transition Buttons
+    const allowed = window.ALLOWED_TRANSITIONS[r.status] || [];
+    allowed.forEach(nextStatus => {
+      if (nextStatus === 'verified' && !r.verified) return;
 
-  // Stale Re-confirm button
-  if (isReportStale(r)) {
-    const btnReconfirm = document.createElement('button');
-    btnReconfirm.type = 'button';
-    btnReconfirm.className = 'btn btn-sm btn-primary';
-    btnReconfirm.textContent = 'Re-confirm Outage';
-    btnReconfirm.setAttribute('aria-label', `Re-confirm outage report for ${r.area}`);
-    btnReconfirm.addEventListener('click', () => handleReconfirmReport(r.id));
-    actionsDiv.appendChild(btnReconfirm);
+      const btnTransition = document.createElement('button');
+      btnTransition.type = 'button';
+      btnTransition.className = 'btn btn-sm btn-secondary';
+      btnTransition.textContent = `Mark ${window.STATUSES[nextStatus] || nextStatus}`;
+      btnTransition.setAttribute('aria-label', `Mark status as ${window.STATUSES[nextStatus] || nextStatus} for ${r.area}`);
+      btnTransition.addEventListener('click', () => handleStatusTransition(r.id, nextStatus));
+      actionsDiv.appendChild(btnTransition);
+    });
+
+    // Stale Re-confirm button
+    if (isReportStale(r)) {
+      const btnReconfirm = document.createElement('button');
+      btnReconfirm.type = 'button';
+      btnReconfirm.className = 'btn btn-sm btn-secondary';
+      btnReconfirm.textContent = 'Re-confirm Outage';
+      btnReconfirm.setAttribute('aria-label', `Re-confirm outage report for ${r.area}`);
+      btnReconfirm.addEventListener('click', () => handleReconfirmReport(r.id));
+      actionsDiv.appendChild(btnReconfirm);
+    }
+
+    // Delete button with confirmation
+    const btnDelete = document.createElement('button');
+    btnDelete.type = 'button';
+    btnDelete.className = 'btn btn-sm btn-danger';
+    btnDelete.textContent = 'Delete';
+    btnDelete.setAttribute('aria-label', `Delete outage report for ${r.area}`);
+    btnDelete.addEventListener('click', () => handleDeleteReport(r.id, r.area));
+    actionsDiv.appendChild(btnDelete);
   }
 
-  // Delete button with confirmation
-  const btnDelete = document.createElement('button');
-  btnDelete.type = 'button';
-  btnDelete.className = 'btn btn-sm btn-danger';
-  btnDelete.textContent = 'Delete';
-  btnDelete.setAttribute('aria-label', `Delete outage report for ${r.area}`);
-  btnDelete.addEventListener('click', () => handleDeleteReport(r.id, r.area));
-  actionsDiv.appendChild(btnDelete);
-
-  card.appendChild(actionsDiv);
+  if (actionsDiv.children.length > 0) {
+    card.appendChild(actionsDiv);
+  }
   return card;
 }
 
@@ -538,6 +936,10 @@ function handleClearFilters() {
  * Verifies a report: sets verified to true, advances status to verified, updates timestamp.
  */
 function handleVerifyReport(id) {
+  if (!isAdmin()) {
+    showToast('Admin access required.', 'error');
+    return;
+  }
   const rep = reports.find(r => r.id === id);
   if (!rep) return;
   rep.verified = true;
@@ -548,12 +950,17 @@ function handleVerifyReport(id) {
   saveData();
   renderAll();
   showFormStatus(`Report for ${rep.area} marked as confirmed & verified.`, 'status-success');
+  showToast(`Verified report for ${rep.area}.`, 'success');
 }
 
 /**
  * Updates a report's status to an allowed next state.
  */
 function handleStatusTransition(id, nextStatus) {
+  if (!isAdmin()) {
+    showToast('Admin access required.', 'error');
+    return false;
+  }
   const rep = reports.find(r => r.id === id);
   if (!rep) return false;
 
@@ -563,6 +970,7 @@ function handleStatusTransition(id, nextStatus) {
       `Invalid status transition: Cannot change from "${window.STATUSES[rep.status] || rep.status}" directly to "${window.STATUSES[nextStatus] || nextStatus}".`,
       'status-error'
     );
+    showToast(`Invalid transition to ${window.STATUSES[nextStatus] || nextStatus}.`, 'error');
     return false;
   }
 
@@ -574,6 +982,7 @@ function handleStatusTransition(id, nextStatus) {
   saveData();
   renderAll();
   showFormStatus(`Status updated to "${window.STATUSES[nextStatus]}" for ${rep.area}.`, 'status-success');
+  showToast(`Status updated to ${window.STATUSES[nextStatus]}.`, 'success');
   return true;
 }
 
@@ -581,6 +990,10 @@ function handleStatusTransition(id, nextStatus) {
  * Refreshes the updatedAt timestamp on a stale report to re-confirm it.
  */
 function handleReconfirmReport(id) {
+  if (!isAdmin()) {
+    showToast('Admin access required.', 'error');
+    return;
+  }
   const rep = reports.find(r => r.id === id);
   if (!rep) return;
   rep.updatedAt = new Date().toISOString();
@@ -591,12 +1004,17 @@ function handleReconfirmReport(id) {
   saveData();
   renderAll();
   showFormStatus(`Outage re-confirmed for ${rep.area}. Timestamp updated.`, 'status-success');
+  showToast(`Re-confirmed outage for ${rep.area}.`, 'success');
 }
 
 /**
  * Deletes a report after asking user confirmation.
  */
 function handleDeleteReport(id, areaName) {
+  if (!isAdmin()) {
+    showToast('Admin access required.', 'error');
+    return;
+  }
   const confirmed = window.confirm(`Delete the outage report for ${areaName}? This action cannot be undone.`);
   if (!confirmed) return;
 
@@ -604,6 +1022,7 @@ function handleDeleteReport(id, areaName) {
   saveData();
   renderAll();
   showFormStatus(`Report for ${areaName} deleted.`, 'status-success');
+  showToast(`Report for ${areaName} deleted.`, 'info');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -749,7 +1168,7 @@ function submitNewReport(reportData) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     mergedInto: null,
-    source: 'resident',
+    source: isAdmin() ? 'utility staff' : 'resident',
     reportCount: 1
   };
 
@@ -777,10 +1196,11 @@ function mergeIntoExistingReport(existingReportId, newReportData) {
   target.updatedAt = new Date().toISOString();
 
   // Explicitly maintain data provenance history across duplicate merges
+  const sourceToAdd = isAdmin() ? 'utility staff' : 'resident';
   if (!Array.isArray(target.provenanceHistory)) {
     target.provenanceHistory = [target.source || 'resident'];
   }
-  target.provenanceHistory.push('resident');
+  target.provenanceHistory.push(sourceToAdd);
 
   // If report count reaches 3, automatically confirm/verify
   if (target.reportCount >= 3 && !target.verified) {
@@ -924,11 +1344,15 @@ function renderNotices() {
  */
 function handleNoticeSubmit(e) {
   e.preventDefault();
+  if (!isAdmin()) {
+    showToast('Admin access required.', 'error');
+    return;
+  }
   const titleVal = noticeTitle.value.trim();
   const messageVal = noticeMessage.value.trim();
 
   if (!titleVal || !messageVal) {
-    alert('Please enter both a title and message for the notice.');
+    showToast('Please enter both a title and message for the notice.', 'error');
     return;
   }
 
@@ -944,6 +1368,7 @@ function handleNoticeSubmit(e) {
   renderNotices();
 
   noticeForm.reset();
+  showToast('Notice published successfully.', 'success');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -975,6 +1400,8 @@ function setupResetButton() {
       resetToSampleData(true);
     }
   });
+
+  resetBtn.hidden = !isAdmin();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -985,6 +1412,7 @@ function setupResetButton() {
  * Convenience orchestrator to re-render reports, notices, and counters.
  */
 function renderAll() {
+  applyRoleToUI();
   renderReports();
   renderNotices();
 }
@@ -993,6 +1421,13 @@ function renderAll() {
  * Attaches all form, filter, and input event handlers.
  */
 function bindEventListeners() {
+  // Role switcher
+  if (roleSwitcher) {
+    roleSwitcher.addEventListener('change', (e) => {
+      setRole(e.target.value);
+    });
+  }
+
   // Live character counter on description
   if (inputDesc && descCount) {
     inputDesc.addEventListener('input', () => {
@@ -1046,6 +1481,8 @@ function bindEventListeners() {
    DOM Ready
    ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  loadRole();
+  loadConfirmedReportIds();
   loadData();
   setInitialTimeNoticed();
   setupResetButton();
