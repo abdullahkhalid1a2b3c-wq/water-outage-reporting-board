@@ -3,7 +3,7 @@
 **Web Engineering — Assignment 2: PHP, PDO/SQLite & Fetch Application**  
 **Assigned Project Idea:** #23, Water Outage Reporting Board
 
-🔗 **Deployed URL:** `https://<your-render-service>.onrender.com` *(placeholder — deploy via [Dockerfile](Dockerfile) and [render.yaml](render.yaml))*
+🔗 **Deployed URL:** https://water-outage-reporting-board-f2f26.containers.snapdeploy.app
 
 A responsive, full-stack web application where neighbourhood residents report water outages, see which areas are affected, and distinguish confirmed reports from unverified ones. Real authenticated users (`resident` and `admin`) interact through a vanilla JavaScript `fetch` (`async/await`) frontend backed by a PHP 8.5 JSON API, PDO prepared statements, and an SQLite database.
 
@@ -136,10 +136,13 @@ This resets the database via `database/seed.php` and runs all 12 cURL integratio
 
 ---
 
-## 10. Deployment (Docker & Render)
+## 10. Deployment (Docker & SnapDeploy)
 
-A [Dockerfile](Dockerfile) (based on `php:8.5-cli`), [.dockerignore](.dockerignore), and [render.yaml](render.yaml) are included.  
-Because Render's free-tier disk is ephemeral, the container command runs `php database/seed.php` on every startup before launching `php -S 0.0.0.0:${PORT:-8000} -t public`.
+Deployed live at: https://water-outage-reporting-board-f2f26.containers.snapdeploy.app
+
+- Built directly from [Dockerfile](Dockerfile) (`php:8.5-cli` with `pdo_sqlite` and `mbstring` enabled) and [.dockerignore](.dockerignore).
+- Binds to SnapDeploy's dynamic `$PORT` (`php -S 0.0.0.0:${PORT:-8000} -t public`) and runs `php database/seed.php` on every container startup so the ephemeral SQLite database always initializes with fresh demo data.
+- On the free tier, the container sleeps after 15 minutes of inactivity and wakes automatically on the next request.
 
 ---
 
