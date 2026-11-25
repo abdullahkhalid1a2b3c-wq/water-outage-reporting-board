@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: water-outage-reporting-board
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/reports.php
+    envVars:
+      - key: PORT
+        value: "8000"

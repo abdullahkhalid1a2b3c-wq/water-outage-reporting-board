@@ -1,0 +1,4 @@
+# Ignore SQLite database files
+database/*.sqlite
+
+database/app.sqlite
