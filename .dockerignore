@@ -1,11 +1,2 @@
 .git
-.gitignore
-.vscode
 database/*.sqlite
-screenshots
-TESTING.md
-tests
-README.md
-DESIGN.md
-index.html
-js
