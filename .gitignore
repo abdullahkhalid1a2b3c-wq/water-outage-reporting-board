@@ -1,4 +1,11 @@
 # Ignore SQLite database files
 database/*.sqlite
+database/*.sqlite-journal
+database/*.sqlite-wal
+database/*.sqlite-shm
 
-database/app.sqlite
+# Ignore logs, dependencies, and temporary files
+*.log
+node_modules/
+*.tmp
+tmp/

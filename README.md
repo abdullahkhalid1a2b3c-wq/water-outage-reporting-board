@@ -5,7 +5,7 @@
 
 🔗 **Deployed URL:** https://water-outage-reporting-board-f2f26.containers.snapdeploy.app
 
-A responsive, full-stack web application where neighbourhood residents report water outages, see which areas are affected, and distinguish confirmed reports from unverified ones. Real authenticated users (`resident` and `admin`) interact through a vanilla JavaScript `fetch` (`async/await`) frontend backed by a PHP 8.5 JSON API, PDO prepared statements, and an SQLite database.
+A responsive, full-stack web application where neighbourhood residents report water outages, see which areas are affected, and distinguish confirmed reports from unverified ones. Real authenticated users (`resident` and `admin`) interact through a vanilla JavaScript `fetch` (`async/await`) frontend backed by a PHP JSON API, PDO prepared statements, and an SQLite database.
 
 ---
 
@@ -28,7 +28,7 @@ The **Water Outage Reporting Board** provides one shared board where:
 Browser (HTML5 + CSS3 + public/js/app.js)
    │  fetch(..., { credentials: 'same-origin', headers: { 'X-CSRF-Token': ... } })
    ▼
-PHP 8.5 JSON API (public/api/auth.php, reports.php, notices.php)
+PHP JSON API (public/api/auth.php, reports.php, notices.php)
    │  Session Auth + CSRF + Server Validation (src/)
    ▼
 PDO (Prepared Statements, ATTR_EMULATE_PREPARES = false, PRAGMA foreign_keys = ON)
@@ -36,7 +36,7 @@ PDO (Prepared Statements, ATTR_EMULATE_PREPARES = false, PRAGMA foreign_keys = O
 SQLite Database (database/app.sqlite)
 ```
 
-Browser storage (`localStorage`) is used **only** for a single non-sensitive UI preference (`wob_pref_sort`). All reports, notices, confirmations, users, and sessions live on the server.
+Browser storage (`localStorage`) is used **only** for a single non-sensitive UI preference (`wob_pref_sort`) inside `try/catch`. All reports, notices, confirmations, users, and sessions live on the server.
 
 ---
 
@@ -55,23 +55,33 @@ Browser storage (`localStorage`) is used **only** for a single non-sensitive UI 
 
 ## 4. Local Setup
 
-### Prerequisites
-- **PHP 8.5** (or PHP 8.2+) with the `pdo_sqlite` and `curl` extensions enabled.
+### Prerequisites & Required PHP Extensions
+- **PHP 8.2+** (tested on PHP 8.2.35 locally and PHP 8.5 in Docker)
+- **Required extensions:**
+  - `pdo_sqlite` and `sqlite3` (required for SQLite database access via PDO)
+  - `curl` (required only to run the automated CLI test suite `tests/run_tests.php`)
+- **Optional extension:**
+  - `mbstring` (used by `utf8_length()` in `src/validate.php` when enabled; falls back automatically to `iconv_strlen` / `preg_match_all('/./us', ...)` when disabled)
 
-### Steps
-1. Clone or open the repository:
-   ```bash
-   cd webdevASS1
-   ```
-2. Seed the SQLite database (`database/app.sqlite` is created automatically from `database/schema.sql`):
-   ```bash
-   php database/seed.php
-   ```
-3. Start the PHP built-in development server with `public` as the document root:
-   ```bash
-   php -S localhost:8000 -t public
-   ```
-4. Open [http://localhost:8000](http://localhost:8000) in your browser.
+### Windows (PowerShell)
+```powershell
+cd webdevASS1
+php database/seed.php
+php -S localhost:8000 -t public
+```
+Open [http://localhost:8000](http://localhost:8000) in your browser.
+
+### Linux / macOS
+```bash
+cd webdevASS1
+php database/seed.php
+php -S localhost:8000 -t public
+```
+Open [http://localhost:8000](http://localhost:8000) in your browser.
+
+### Troubleshooting
+- **`Call to undefined function mb_strlen()`**: Fixed in `src/validate.php` via `utf8_length()`, which no longer requires `mbstring`. If you want `mbstring` enabled anyway, open `php.ini` (find its path with `php --ini`), uncomment `extension=mbstring`, and restart the PHP server.
+- **`could not find driver` (PDOException)**: Enable SQLite in `php.ini` by uncommenting `extension=pdo_sqlite` and `extension=sqlite3` (and ensure `extension_dir = "ext"` on Windows), then restart `php -S localhost:8000 -t public`.
 
 ---
 
@@ -128,11 +138,13 @@ Defined in [database/schema.sql](database/schema.sql):
 
 ## 9. Running Automated Tests
 
+All numbers and results in this README come from the actual test run executed on **2026-11-27** (**12 / 12 passed, 0 failed**). See [tests/last_run.txt](tests/last_run.txt) for the full output and [TESTING.md](TESTING.md) for the complete test matrix.
+
 With the server running (`php -S localhost:8000 -t public`), run:
 ```bash
 php tests/run_tests.php
 ```
-This resets the database via `database/seed.php` and runs all 12 cURL integration tests (**T1–T12**). See [TESTING.md](TESTING.md) for the full test matrix.
+This resets the database via `database/seed.php` and runs all 12 cURL integration tests (**T1–T12**).
 
 ---
 
@@ -148,20 +160,42 @@ Deployed live at: https://water-outage-reporting-board-f2f26.containers.snapdepl
 
 ## 11. Screenshots
 
-| View / State | Screenshot Placeholder |
-|---|---|
-| Login bar & header | `![Login](screenshots/login.png)` *(placeholder)* |
-| Reports list loading state | `![Loading State](screenshots/reports-loading.png)` *(placeholder)* |
-| Empty state (no matching filters) | `![Empty State](screenshots/reports-empty.png)` *(placeholder)* |
-| Error state with Retry button | `![Error State](screenshots/reports-error.png)` *(placeholder)* |
-| Server 422 validation errors | `![Validation Errors](screenshots/validation-errors.png)` *(placeholder)* |
-| Duplicate detection prompt (409) | `![Duplicate Prompt](screenshots/duplicate-prompt.png)` *(placeholder)* |
-| Admin Moderator Dashboard | `![Admin Dashboard](screenshots/admin-moderator-dashboard.png)` |
-| CLI test run output (`T1–T12`) | `![Test Output](screenshots/test-run-output.png)` *(placeholder)* |
+### Assignment 2 (Full-Stack PHP + SQLite + Fetch)
+
+| View / State | Screenshot | Caption |
+|---|---|---|
+| Login bar & logged-out view | ![Login](screenshots/login.png) | Header login form with real labels and logged-out "Please log in" notice. |
+| Reports list (logged in) | ![Reports List](screenshots/reports-list.png) | Authenticated `resident1` view showing report cards, badges, and summary stats. |
+| Resident ownership controls | ![Resident Ownership](screenshots/resident-ownership.png) | Edit & Delete buttons appear only on reports owned by `resident1` while `reported`. |
+| Reports loading state | ![Loading State](screenshots/reports-loading.png) | `aria-busy` loading banner shown while `/api/reports.php` is in flight. |
+| Empty state (no matches) | ![Empty State](screenshots/reports-empty.png) | Empty state message displayed when keyword search (`zzzzqqq`) matches no reports. |
+| Error state with Retry | ![Error State](screenshots/reports-error.png) | Network/API failure banner with working Retry button for `/api/reports.php`. |
+| Server 422 validation errors | ![Validation Errors](screenshots/validation-errors.png) | Field-level 422 validation errors rendered directly below invalid inputs. |
+| Duplicate detection prompt (409) | ![Duplicate Prompt](screenshots/duplicate-prompt.png) | 409 conflict prompt offering "Merge into existing report" or "Submit as new". |
+| Report submission success | ![Report Success](screenshots/report-success.png) | Success toast notification after submitting a valid outage report. |
+| Admin Moderator Dashboard | ![Admin Dashboard](screenshots/admin-moderator-dashboard.png) | Admin-only dashboard with Needs Moderation, Stale Reports, and Area Breakdown table. |
+| Admin Notices & Add Notice form | ![Admin Notices](screenshots/admin-notices.png) | Admin view of timestamped notices with Delete buttons and the Add a Notice form. |
+| Mobile layout (375px) | ![Mobile 375px](screenshots/mobile-375.png) | Full-page responsive layout at 375px width with zero horizontal overflow. |
+| Tablet layout (768px) | ![Tablet 768px](screenshots/tablet-768.png) | Full-page responsive layout at 768px width with zero horizontal overflow. |
+| CLI test run output (`T1–T12`) | ![Test Output](screenshots/test-run-output.png) | Terminal output of `php tests/run_tests.php` showing all 12 tests passing. |
+
+### Assignment 1 screenshots (client-only version)
+
+- [Desktop Overview](screenshots/desktop.png)
+- [Desktop Resident View](screenshots/desktop-resident-view.png)
+- [Desktop Admin View](screenshots/desktop-admin-view.png)
+- [Filter Bar](screenshots/filter-bar.png)
+- [Filters & Summary Stats](screenshots/filters-and-summary-stats.png)
+- [Report Form](screenshots/report-form.png)
+- [Report Form Submission Success](screenshots/report-form-submission-success.png)
+- [Report Card (Resident View)](screenshots/report-card-resident-view.png)
+- [Notices Board (Resident View)](screenshots/notices-board-resident-view.png)
+- [Notices Admin Add Notice Form](screenshots/notices-admin-add-notice-form.png)
+- [Unhydrated Initial State](screenshots/error-unhydrated-initial-state.png)
 
 ---
 
 ## 12. Attribution & AI Disclosure
 
-- **Attribution:** Built with PHP 8.5, PDO, SQLite, semantic HTML5, CSS3, and vanilla JavaScript. No external PHP composer packages, JS libraries, or CSS frameworks are used. All demo accounts, phone numbers, and outage records are fictional.
-- **AI Assistance Disclosure:** Portions of this project's code, tests, and documentation were developed with the assistance of AI-based tools. All code was reviewed, tested, and understood by the author.
+- **Attribution:** Built with PHP, PDO, SQLite, semantic HTML5, CSS3, and vanilla JavaScript. No external PHP composer packages, JS libraries, or CSS frameworks are used. All demo accounts, phone numbers, and outage records are fictional.
+- **AI Assistance Disclosure:** Portions of this project's code, tests, and documentation were developed with the assistance of AI-based tools. All code was reviewed, tested, and verified by the author.

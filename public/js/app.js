@@ -250,6 +250,19 @@ function formatReadableDate(isoString) {
   });
 }
 
+function toLocalDatetimeValue(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return isoString.slice(0, 16);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function toUtcIsoFromLocalInput(localVal) {
+  if (!localVal) return '';
+  const d = new Date(localVal);
+  return Number.isNaN(d.getTime()) ? localVal : d.toISOString();
+}
+
 function setInitialTimeNoticed() {
   if (!inputTime) return;
   const now = new Date();
@@ -617,7 +630,7 @@ function buildInlineEditForm(r, card) {
   const timeInput = document.createElement('input');
   timeInput.type = 'datetime-local';
   timeInput.required = true;
-  timeInput.value = (r.time_noticed || '').slice(0, 16);
+  timeInput.value = toLocalDatetimeValue(r.time_noticed || '');
 
   form.appendChild(makeGroup('Area', areaSel, 'area'));
   form.appendChild(makeGroup('Issue Type', typeSel, 'issue_type'));
@@ -656,7 +669,7 @@ function buildInlineEditForm(r, card) {
           issue_type: typeSel.value,
           description: descTa.value.trim(),
           contact: contactInput.value.trim(),
-          time_noticed: timeInput.value
+          time_noticed: toUtcIsoFromLocalInput(timeInput.value)
         })
       });
       replaceReportInState(data.report);
@@ -1169,7 +1182,7 @@ async function handleReportFormSubmit(e) {
     issue_type: inputType ? inputType.value : '',
     description: inputDesc ? inputDesc.value.trim() : '',
     contact: inputContact ? inputContact.value.trim() : '',
-    time_noticed: inputTime ? inputTime.value : ''
+    time_noticed: inputTime ? toUtcIsoFromLocalInput(inputTime.value) : ''
   };
 
   await submitReportPayload(payload, btnSubmitReport);

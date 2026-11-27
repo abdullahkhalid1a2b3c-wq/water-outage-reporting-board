@@ -1,0 +1,21 @@
+Seeding database...
+Seed completed successfully:
+  - Users inserted: 3 (admin, resident1, resident2)
+  - Reports inserted: 8
+  - Confirmations inserted: 4
+  - Notices inserted: 3
+
+[PASS] T1   Invalid input                    (HTTP 422)
+[PASS] T2   Missing input                    (HTTP 422)
+[PASS] T3   Successful create                (HTTP 201) - id=9
+[PASS] T4   Successful update                (HTTP 200)
+[PASS] T5   Unauthorized (no login)          (HTTP 401)
+[PASS] T6   Missing CSRF token               (HTTP 403)
+[PASS] T7   Ownership enforcement            (HTTP 403) - PUT=403, DELETE=403
+[PASS] T8   Invalid status transition        (HTTP 409)
+[PASS] T9   Duplicate detect & merge         (HTTP 200) - conflict=409, merge=200
+[PASS] T10  Double confirm blocked           (HTTP 409) - first=200, second=409
+[PASS] T11  SQL injection in search          (HTTP 200)
+[PASS] T12  XSS plain-text & textContent     (HTTP 201)
+
+Summary: Passed 12 / 12, Failed 0
